@@ -337,8 +337,9 @@ void LaneManager::run()
       }
       else
       {
-        if(bbox_vector[0].id == 0 && box_size >= box_threshold && distance <= 160)
+        if(bbox_vector[0].id == 0 && box_size >= box_threshold && distance <= 145)
         {
+          std::cout << "turn left, distance : " << distance << "\n";
           control_few_second(left_wait, -50, 4);
         }
         else if(bbox_vector[0].id == 1 && box_size >= box_threshold && distance <= 160)

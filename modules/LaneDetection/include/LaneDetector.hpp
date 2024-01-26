@@ -53,6 +53,7 @@ private:
   PREC hough_min_line_length_; ///< The min line length of hough transition.
   bool is_right_ = false;      ///< The flag for lane direction.
   cv::Mat canny_crop;          ///< The roi image with canny algorithm.
+  bool DEBUG;
 
   State state_;  ///< The state of lane.
 

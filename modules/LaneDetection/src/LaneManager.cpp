@@ -51,6 +51,10 @@ void LaneManager::set_parameters(const YAML::Node &config)
   detect_x_max = config["OBJECT"]["X_MAX"].as<int>();
   detect_y_max = config["OBJECT"]["Y_MAX"].as<int>();
   box_threshold = config["OBJECT"]["BOX_THRESHOLD"].as<int>();
+  left_wait = config["OBJECT"]["LEFT_WAIT"].as<double>();
+  right_wait = config["OBJECT"]["RIGHT_WAIT"].as<double>();
+  DEBUG = config["DEBUG"].as<bool>();
+  SHOW = config["SHOW"].as<bool>();
 }
 
 void LaneManager::control_few_second(double time, int angle, int speed)
@@ -142,7 +146,7 @@ void LaneManager::object_detection_callback(const yolov3_trt_ros::BoundingBoxes 
     std::cout << "distance : " << distance << ", box_size : " << box_size << "\n";
     if (box_size < 10000 && (bbox.id == 0 || bbox.id == 1))
       bbox_vector.push_back(bbox);
-    else if(bbox.id != 0 && bbox.id != 1)
+    else if(bbox.id != 0 && bbox.id != 1 && bbox.id != 7)
       bbox_vector.push_back(bbox);
   }
 }
@@ -154,7 +158,7 @@ void LaneManager::lidar_stop()
 
 void LaneManager::lidar_drive(int direction) // turning back after avoiding obstacle by lidar detection
 {
-  control_few_second(0.85, lidar_angle * direction, lidar_speed);
+  control_few_second(1, lidar_angle * direction, lidar_speed);
   control_few_second(-1, -lidar_angle * direction, lidar_speed);
 }
 
@@ -198,29 +202,32 @@ void LaneManager::run()
     cv::Mat canny_image = image_processor_->process(image_);
     State lane_state = detector_->find_state(canny_image, draw_image);
 
-#if SHOW
-    draw_line_slope(draw_image, lane_state.left_slope_,
-                    lane_state.left_intercept_, cv::Scalar(255, 0, 0),
-                    frame_height_);
-    draw_line_slope(draw_image, lane_state.right_slope_,
-                    lane_state.right_intercept_, cv::Scalar(255, 0, 0),
-                    frame_height_);
-#endif
+    if(SHOW)
+    {
+      draw_line_slope(draw_image, lane_state.left_slope_,
+                      lane_state.left_intercept_, cv::Scalar(255, 0, 0),
+                      frame_height_);
+      draw_line_slope(draw_image, lane_state.right_slope_,
+                      lane_state.right_intercept_, cv::Scalar(255, 0, 0),
+                      frame_height_);
+    }
 
-#if DEBUG
-    std::cout << "lpos: " << lane_state.left_pos_ << std::endl;
-    std::cout << "rpos: " << lane_state.right_pos_ << std::endl;
-    std::cout << "stop: " << lane_state.stop_flag_ << std::endl;
-#endif
+    if(DEBUG)
+    {
+      std::cout << "lpos: " << lane_state.left_pos_ << std::endl;
+      std::cout << "rpos: " << lane_state.right_pos_ << std::endl;
+      std::cout << "stop: " << lane_state.stop_flag_ << std::endl;
+    }
 
-#if SHOW
-    cv::putText(draw_image, cv::format("%.1f", lane_state.left_pos_),
-                cv::Point(lane_state.left_pos_, offset_), cv::FONT_HERSHEY_PLAIN,
-                2, cv::Scalar(255, 0, 0));
-    cv::putText(draw_image, cv::format("%.1f", lane_state.right_pos_),
-                cv::Point(lane_state.right_pos_ - 100, offset_),
-                cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 0, 0));
-#endif
+    if(SHOW)
+    {
+      cv::putText(draw_image, cv::format("%.1f", lane_state.left_pos_),
+                  cv::Point(lane_state.left_pos_, offset_), cv::FONT_HERSHEY_PLAIN,
+                  2, cv::Scalar(255, 0, 0));
+      cv::putText(draw_image, cv::format("%.1f", lane_state.right_pos_),
+                  cv::Point(lane_state.right_pos_ - 100, offset_),
+                  cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 0, 0));
+    }
 
       // if(lane_state.left_detector_ == false && lane_state.right_detector_)
       // {
@@ -242,13 +249,14 @@ void LaneManager::run()
     int32_t frame_centor = frame_width_ >> 1;
     int32_t error = lane_centor - frame_centor;
 
-#if SHOW
-    draw_rectangle(draw_image, lane_state.left_pos_, cv::Scalar(255, 0, 0), offset_);
-    draw_rectangle(draw_image, lane_state.right_pos_, cv::Scalar(255, 0, 0), offset_);
+    if(SHOW)
+    {
+      draw_rectangle(draw_image, lane_state.left_pos_, cv::Scalar(255, 0, 0), offset_);
+      draw_rectangle(draw_image, lane_state.right_pos_, cv::Scalar(255, 0, 0), offset_);
 
-    draw_rectangle(draw_image, lane_centor, cv::Scalar(255, 0, 0), offset_);
-    draw_rectangle(draw_image, frame_centor, cv::Scalar(0, 0, 255), offset_);
-#endif
+      draw_rectangle(draw_image, lane_centor, cv::Scalar(255, 0, 0), offset_);
+      draw_rectangle(draw_image, frame_centor, cv::Scalar(0, 0, 255), offset_);
+    }
 
     PREC angle = pid_controller_->compute_angle(error);
 
@@ -271,15 +279,17 @@ void LaneManager::run()
       lidar_flag = false;
     }
 
-#if DEBUG
-    std::cout <<"error: " << error << std::endl;
-    std::cout <<"angle: " << angle << std::endl;
-#endif
+    if(DEBUG)
+    {
+      std::cout <<"error: " << error << std::endl;
+      std::cout <<"angle: " << angle << std::endl;
+    }
 
-#if SHOW
-    cv::putText(draw_image, cv::format("%d", error), cv::Point(300, 50), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0));
-    cv::putText(draw_image, cv::format("%.1f", angle), cv::Point(300, 80), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0));
-#endif
+    if(SHOW)
+    {
+      cv::putText(draw_image, cv::format("%d", error), cv::Point(300, 50), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0));
+      cv::putText(draw_image, cv::format("%.1f", angle), cv::Point(300, 80), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0));
+    }
 
       // if(lane_state.stop_flag_){
       //   publisher_.publish(xycar_controller->stop());
@@ -289,7 +299,7 @@ void LaneManager::run()
       // }
     if(bbox_vector.empty())
     {
-      if (lane_state.stop_flag_)
+      if(lane_state.stop_flag_)
         publisher_.publish(xycar_controller->stop());
       else
        publisher_.publish(xycar_controller->control(angle));
@@ -302,14 +312,14 @@ void LaneManager::run()
           object_detection_stop();
         else if(bbox_vector[0].id == 0) // left(0)
         {
-          std::cout << "stop left" << "\n";
           control_few_second(1, 0, 0);
           control_few_second(2, 0, 5);
-          object_detection_drive(-1);
+          control_few_second(wait + 2.5, 50 * -1 , 5);
+          // object_detection_drive(-1);
+          // control_few_second(0.2, 0, 5);
         }
         else if(bbox_vector[0].id == 1) // right(1)
         {
-          std::cout << "stop right" << "\n";
           control_few_second(1, 0, 0);
           control_few_second(1, 0, 5);
           object_detection_drive(1);
@@ -322,26 +332,27 @@ void LaneManager::run()
           {
             control_few_second(1, 0, 5);
           }
-        else // when xycar(7), ignore(8) detected
+       else // when xycar(7), ignore(8) detected
           publisher_.publish(xycar_controller->control(angle));
       }
       else
       {
         if(bbox_vector[0].id == 0 && box_size >= box_threshold && distance <= 160)
         {
-          control_few_second(wait + 2.25, -50, 4);
+          control_few_second(left_wait, -50, 4);
         }
         else if(bbox_vector[0].id == 1 && box_size >= box_threshold && distance <= 160)
-          control_few_second(wait + 4.6, 50, 5);
-
-        publisher_.publish(xycar_controller->control(angle));
+          control_few_second(right_wait, 50, 5);
+        else
+          publisher_.publish(xycar_controller->control(angle));
       }
     }
 
-#if SHOW
-    cv::imshow("draw_image", draw_image);
-    cv::waitKey(1);
-#endif
+    if(SHOW)
+    {
+      cv::imshow("draw_image", draw_image);
+      cv::waitKey(1);
+    }
 
     // videoWriter << draw_image;
   }

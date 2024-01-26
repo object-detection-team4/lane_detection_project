@@ -84,8 +84,12 @@ private:
   int box_size;
   int box_threshold;
   int distance;
+  double left_wait;
+  double right_wait;
   bool lidar_flag;
   std::vector<PREC> angle_vector;
+  bool DEBUG;
+  bool SHOW;
 
   /**
    * @brief Set configuration.

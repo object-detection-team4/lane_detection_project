@@ -6,10 +6,9 @@ lane_detection_project
 </br>
 </br>
 
-- **Object detection (Detection Result / BEV result)**
+- **Object detection**
 
-[![Object detection](http://img.youtube.com/vi/CmKZm0-LfUw/0.jpg)](https://youtu.be/CmKZm0-LfUw)
-[![Object detection](http://img.youtube.com/vi/-DNyKI_qmKc/0.jpg)](https://youtu.be/-DNyKI_qmKc)
+[![Object detection](http://img.youtube.com/vi/aAkAAMETk6s/0.jpg)](https://youtu.be/aAkAAMETk6s)
 </br>
 </br>
 

@@ -1,26 +1,40 @@
 lane_detection_project
 ====
+- **Lane detection**
+
 [![lane_detection](http://img.youtube.com/vi/faHEmd_3msI/0.jpg)](https://youtu.be/faHEmd_3msI)
+</br>
+</br>
 
+- **Object detection (Detection Result / BEV result)**
 
-차선인식 프로젝트
+[![Object detection](http://img.youtube.com/vi/CmKZm0-LfUw/0.jpg)](https://youtu.be/CmKZm0-LfUw)
+[![Object detection](http://img.youtube.com/vi/-DNyKI_qmKc/0.jpg)](https://youtu.be/-DNyKI_qmKc)
+</br>
+</br>
+
+객체 인식 및 depth 추정 프로젝트
 ===
-> **프로그래머스 K-Digital Training 자율주행 데브코스**  
-> 1:10 스케일 모형 차(Xycar)를 활용한 차선인식 프로젝트 (Lane keeping project using 1:10 scale model car(Xycar))  
-> 개발기간 (Development period): 2023.10.28 ~ 2023.11.17
+> **프로그래머스 K-Digital Training 자율주행 데브코스 15주차 프로젝트**  
+> 1:10 스케일 모형 차(Xycar)를 활용한 객체 인식 및 depth 추정 프로젝트 (Object Detection & Depth Estimation project using 1:10 scale model car(Xycar))  
+> 개발기간 (Development period): 2024.01.16 ~ 2024.01.26
 </br>
 
 ## 팀 소개
-| 팀원 | 팀원 | 멘토 |
-|:------:|:------:|:---:|
-| 김나혜 | 허동욱 |이치현|
-|[@nahye03](https://github.com/nahye03)|[@dongwookheo](https://github.com/dongwookheo)|[@hyunny223](https://github.com/hyuny223)|
+| 팀원 | 팀원 | 팀원 | 멘토 |
+|:------:|:------:|:------:|:---:|
+| 김윤지 | 박성준 | 허동욱 |이치현|
+|[@younji524](https://github.com/younji524)|[@jagbum](https://github.com/jagbum)|[@dongwookheo](https://github.com/dongwookheo)|[@hyunny223](https://github.com/hyuny223)|
 </br>
 
 ## 프로젝트 소개
-![track](https://github.com/dongwookheo/lane_detection_project/assets/124948998/5bf6f9fd-c2fb-48ec-b703-914d3b91bf98)
-- 카메라 센서로 차선을 인식하여, Xycar가 주어진 코스를 완주할 수 있도록 한다  
-- 블록을 넘어뜨릴 경우, 차선을 이탈할 경우 감점
+![경진대회 전체맵](https://github.com/object-detection-team4/lane_detection_project/assets/76142194/bc6ea7c9-e11b-4bb4-a4da-591648dc6bc9)
+
+- 카메라 센서로 차선을 인식하여, Xycar가 주어진 코스를 완주할 수 있도록 한다. 
+- 카메라 센서로 주어진 표지판과 신호등을 인식하여, 코스를 벗어나지 않으며 해당 표지판과 일치하는 주행을 할 수 있도록 한다.
+  - 신호등에 맞추어 전진 혹은 정지 주행하도록 한다. 
+  - 정지 표지판, 횡단보도 앞에서는 정지선 직전 45cm 이내에서 정지하도록 한다.
+  - 코스 내 정적 장애물은 피해서 주행하고, 동적 장애물 등장 시 정지하도록 한다.
 </br>
 
 ## 환경 설정
@@ -28,36 +42,6 @@ lane_detection_project
 - OpenCV 4.5.5
 - ROS melodic
 - Ubuntu 18.04 LTS
-### Installation
-```
-git clone https://github.com/dongwookheo/lane_detection_project.git
-```
-```
-cd lane_detection_project/thirdparty/OpenCV
-```
-```
-git clone https://github.com/opencv/opencv.git
-```
-```
-cd opencv
-```
-```
-git checkout 4.5.5
-```
-```
-cd ../build
-```
-```
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install ../opencv
-```
-- You can check the number of cores through the `nproc` command.
-```
-make -j<core_num>
-```
-```
-make install
-```
-</br>
 
 ## 주요 기능
 ### modules
@@ -70,7 +54,7 @@ make install
 #### LaneDetector.hpp, LaneDetector.cpp
 - 차선 검출 담당 클래스 정의
 #### LaneManager.hpp, LaneManager.cpp
-- 차선 검출 시스템을 총괄하는 클래스 정의
+- 차선 검출 시스템을 총괄, yolo detection 결과에 따른 객체 인식 및 깊이 추정 시스템을 총괄하는 클래스 정의
 #### PIDController.hpp, PIDController.cpp
 - PID 제어기 클래스 정의
 #### XycarController.hpp, XycarController.cpp
@@ -83,14 +67,6 @@ make install
 ```
 roslaunch lane_detection main_xycar.launch
 ```
-
-### Test Xycar teleop
-- i: 속도 Up, k: 속도 Down, j,l: 좌우 조향
-- 추후 개선 사항: 현재는 i,j,k,l 키 입력 후 Enter를 입력해야 반영. Enter 입력 없이 주행할 수 있도록 개선 필요.
-```
-roslaunch lane_detection teleop_xycar.launch
-```
-</br>
 
 ## Stacks
 ### Environment
